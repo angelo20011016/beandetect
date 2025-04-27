@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>咖啡瑕疵豆雲端辨識</title>
+  <style>
+    body {
+      background: #f7f7f7;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      margin-top: 60px;
+      padding: 32px 40px 24px 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      color: #4B3F2F;
+      margin-bottom: 24px;
+    }
+    input[type="file"] {
+      margin-bottom: 16px;
+    }
+    button {
+      background: #6B4F27;
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 16px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #8B6F3A;
+    }
+    #preview {
+      margin: 12px 0;
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      display: none;
+    }
+    #result {
+      background: #f0eee9;
+      color: #333;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      min-height: 32px;
+      font-size: 1.05rem;
+      word-break: break-all;
+    }
+    .footer {
+      margin-top: 40px;
+      color: #aaa;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>咖啡瑕疵豆雲端辨識</h2>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" name="file" accept="image/*" required>
+      <br>
+      <img id="preview" src="#" alt="預覽圖片">
+      <br>
+      <button type="submit">上傳並辨識</button>
+    </form>
+    <div id="result"></div>
+  </div>
+  <div class="footer">
+    &copy; 2025 Angelo | YOLOv8 + FastAPI + Azure ACI
+  </div>
+  <script>
+    const apiUrl = "http://coffeedefects.hafwa9h7anczc3gx.eastasia.azurecontainer.io:8000/predict"; // 換成你的 API
+
+    // 圖片預覽
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('preview');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          preview.src = evt.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = "none";
+      }
+    });
+
+    // 上傳並辨識
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files.length) return;
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      document.getElementById('result').textContent = "辨識中...";
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = "辨識結果：" + (data.result || JSON.stringify(data));
+      } catch (err) {
+        document.getElementById('result').textContent = "辨識失敗：" + err;
+      }
+    });
+  </script>
+</body>
+</html>
